@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta principal -->
+    <color name="primary_blue">#4A90E2</color>
+    <color name="primary_green">#6BCB77</color>
+    <color name="primary_gray">#F5F5F5</color>
+    <color name="alert_red">#E74C3C</color>
+    <color name="warning_yellow">#F39C12</color>
+
+    <!-- Tonos complementarios -->
+    <color name="light_blue">#E3F2FD</color>
+    <color name="light_green">#E8F5E8</color>
+    <color name="dark_gray">#757575</color>
+    <color name="medium_gray">#BDBDBD</color>
+
+    <!-- Estados de presión -->
+    <color name="normal_pressure">#6BCB77</color>
+    <color name="elevated_pressure">#F39C12</color>
+    <color name="high_pressure">#E74C3C</color>
+
+    <!-- Fondo y texto -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+</resources>

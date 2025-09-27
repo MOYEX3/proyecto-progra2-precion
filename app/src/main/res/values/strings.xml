@@ -1,0 +1,87 @@
+<resources>
+    <string name="app_name">Presión Control</string>
+
+    <!-- Navegación -->
+    <string name="nav_dashboard">Inicio</string>
+    <string name="nav_new_record">Nuevo Registro</string>
+    <string name="nav_history">Historial</string>
+    <string name="nav_settings">Configuración</string>
+
+    <!-- Dashboard -->
+    <string name="hello_user">¡Hola, %1$s!</string>
+    <string name="today_date">Hoy es %1$s</string>
+    <string name="last_reading">Última lectura</string>
+    <string name="last_7_days">Últimos 7 días</string>
+    <string name="no_readings">No hay registros aún</string>
+    <string name="add_first_reading">Agrega tu primera lectura</string>
+    <string name="ai_recommendation">Recomendación IA</string>
+
+    <!-- Nuevo Registro -->
+    <string name="new_record_title">Nuevo Registro</string>
+    <string name="name_field">Nombre</string>
+    <string name="age_field">Edad</string>
+    <string name="gender_field">Sexo</string>
+    <string name="male">Masculino</string>
+    <string name="female">Femenino</string>
+    <string name="other">Otro</string>
+    <string name="systolic_pressure">Presión Sistólica (mmHg)</string>
+    <string name="diastolic_pressure">Presión Diastólica (mmHg)</string>
+    <string name="date_time">Fecha y Hora</string>
+    <string name="observations">Observaciones</string>
+    <string name="observations_hint">Medicamentos, estado de ánimo, síntomas...</string>
+    <string name="save_record">Guardar Registro</string>
+
+    <!-- Historial -->
+    <string name="history_title">Historial</string>
+    <string name="filter_day">Día</string>
+    <string name="filter_week">Semana</string>
+    <string name="filter_month">Mes</string>
+    <string name="export_history">Exportar Historial</string>
+    <string name="share_history">Compartir</string>
+
+    <!-- Detalle -->
+    <string name="record_detail">Detalle del Registro</string>
+    <string name="recorded_at">Registrado el %1$s</string>
+    <string name="pressure_reading">%1$d/%2$d mmHg</string>
+
+    <!-- Estados de presión -->
+    <string name="normal_status">Normal</string>
+    <string name="elevated_status">Elevada</string>
+    <string name="high_status">Alta</string>
+
+    <!-- Configuración -->
+    <string name="settings_title">Configuración</string>
+    <string name="user_profile">Perfil del Usuario</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="morning_reminder">Recordatorio matutino</string>
+    <string name="evening_reminder">Recordatorio vespertino</string>
+    <string name="associated_conditions">Condiciones Asociadas</string>
+    <string name="hypertension">Hipertensión</string>
+    <string name="diabetes">Diabetes</string>
+    <string name="dark_mode">Modo Oscuro</string>
+    <string name="ai_settings">Configuración IA</string>
+
+    <!-- Emergencia -->
+    <string name="emergency_title">¿Cómo te sientes?</string>
+    <string name="feeling_okay">Me siento bien</string>
+    <string name="feeling_unwell">Me siento más o menos mal</string>
+    <string name="feeling_very_bad">Me siento muy mal</string>
+    <string name="emergency_contact">Contacto de Emergencia</string>
+    <string name="call_emergency">Llamar Emergencia</string>
+    <string name="emergency_dialog_title">Emergencia Médica</string>
+    <string name="emergency_call_confirm">¿Deseas llamar a tu contacto de emergencia?</string>
+    <string name="emergency_call_direct">Llamando directamente a emergencias...</string>
+    <string name="no_emergency_contact">No has configurado un contacto de emergencia. Ve a Configuración para agregarlo.</string>
+    <string name="calling_emergency">Llamando a emergencias...</string>
+    <string name="permission_needed">Se necesita permiso para realizar llamadas</string>
+
+    <!-- Mensajes -->
+    <string name="record_saved">Registro guardado exitosamente</string>
+    <string name="error_saving">Error al guardar el registro</string>
+    <string name="invalid_pressure">Por favor ingresa valores válidos de presión</string>
+    <string name="loading_recommendations">Cargando recomendaciones...</string>
+
+    <!-- Recomendaciones por defecto -->
+    <string name="default_recommendation">Mantén un estilo de vida saludable</string>
+    <string name="high_pressure_warning">Tu presión está elevada. Considera consultar a tu médico.</string>
+</resources>
