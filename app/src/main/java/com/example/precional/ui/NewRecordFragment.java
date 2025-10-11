@@ -214,11 +214,12 @@ public class NewRecordFragment extends Fragment {
             // Convertir género a formato interno
             String gender = convertGenderToInternal(genderText);
 
-            // Si hay observaciones, procesarlas con IA antes de guardar
-            if (!observations.isEmpty() && !ApiClient.getApiKey().isEmpty()) {
-                processObservationsWithAI(name, age, gender, systolic, diastolic, observations);
+            // SIEMPRE procesar con IA si está habilitada
+            UserSettings settings = database.userSettingsDao().getUserSettings();
+            if (settings != null && settings.isAiEnabled() && !ApiClient.getApiKey().isEmpty()) {
+                processWithAI(name, age, gender, systolic, diastolic, observations);
             } else {
-                // Guardar directamente si no hay observaciones o no hay API
+                // Guardar directamente si la IA está deshabilitada
                 saveRecordToDatabase(name, age, gender, systolic, diastolic, observations);
             }
 
@@ -228,28 +229,50 @@ public class NewRecordFragment extends Fragment {
         }
     }
 
-    private void processObservationsWithAI(String name, int age, String gender, int systolic, int diastolic, String observations) {
+    private void processWithAI(String name, int age, String gender, int systolic, int diastolic, String observations) {
         // Mostrar loading
         btnSaveRecord.setEnabled(false);
-        btnSaveRecord.setText("⏳ Procesando con IA...");
+        btnSaveRecord.setText("🤖 Consultando IA...");
 
-        // Construir prompt corto para análisis de observaciones
+        // Determinar el estado de la presión
+        String pressureStatus = getPressureStatus(systolic, diastolic);
+
+        // Construir prompt detallado para análisis completo
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Analiza estas observaciones médicas de presión arterial y responde en MÁXIMO 50 palabras:\n\n");
-        prompt.append("Presión: ").append(systolic).append("/").append(diastolic).append(" mmHg\n");
-        prompt.append("Observaciones del paciente: ").append(observations).append("\n\n");
-        prompt.append("Da UNA recomendación breve y práctica de estilo de vida. NO menciones medicamentos.\n");
-        prompt.append("Respuesta en español, máximo 50 palabras:");
+        prompt.append("Eres un asistente médico virtual especializado en presión arterial.\n\n");
+        prompt.append("DATOS DEL PACIENTE:\n");
+        prompt.append("- Edad: ").append(age).append(" años\n");
+        prompt.append("- Sexo: ").append(getGenderText(gender)).append("\n");
+        prompt.append("- Presión arterial: ").append(systolic).append("/").append(diastolic).append(" mmHg\n");
+        prompt.append("- Estado: ").append(getPressureStatusText(pressureStatus)).append("\n");
+
+        if (!observations.isEmpty()) {
+            prompt.append("- Observaciones del paciente: ").append(observations).append("\n");
+        }
+
+        prompt.append("\nINSTRUCCIONES:\n");
+        prompt.append("1. Analiza los valores de presión arterial\n");
+        prompt.append("2. NO RECOMIENDES MEDICAMENTOS - Solo sugiere cambios de estilo de vida\n");
+        prompt.append("3. Da recomendaciones específicas sobre:\n");
+        prompt.append("   - Alimentación saludable (qué comer y qué evitar)\n");
+        prompt.append("   - Ejercicios recomendados (tipo, duración, intensidad)\n");
+        prompt.append("   - Control de estrés y descanso\n");
+        prompt.append("4. Si la presión está ALTA o MUY ALTA, enfatiza la importancia de consultar al médico\n");
+        prompt.append("5. Si hay observaciones del paciente, considéralas en tus recomendaciones\n");
+        prompt.append("6. Responde en español, en máximo 150 palabras\n");
+        prompt.append("7. Usa un tono amable pero profesional\n\n");
+        prompt.append("RESPUESTA (máximo 150 palabras):");
 
         // Crear mensaje para la API
         List<AIRequest.Message> messages = new ArrayList<>();
+        messages.add(new AIRequest.Message("system", "Eres un asistente de salud que da recomendaciones sobre presión arterial. NUNCA recomiendes medicamentos, solo cambios de estilo de vida."));
         messages.add(new AIRequest.Message("user", prompt.toString()));
 
         AIRequest request = new AIRequest(
-            "x-ai/grok-4-fast:free",
+            "meta-llama/llama-3.2-3b-instruct:free",  // Modelo gratuito más confiable
             messages,
-            100, // Tokens reducidos para respuesta corta
-            0.5  // Temperature más baja para respuestas más consistentes
+            300, // Más tokens para respuestas completas
+            0.7  // Temperature balanceada
         );
 
         // Llamar a la API
@@ -264,14 +287,30 @@ public class NewRecordFragment extends Fragment {
                     String aiResponse = "";
                     if (response.isSuccessful() && response.body() != null &&
                         response.body().getChoices() != null && !response.body().getChoices().isEmpty()) {
-                        aiResponse = response.body().getChoices().get(0).getMessage().getContent();
+                        aiResponse = response.body().getChoices().get(0).getMessage().getContent().trim();
+                    } else {
+                        // Log del error para debugging con más detalles
+                        String errorDetails = "Código: " + response.code();
+                        if (response.errorBody() != null) {
+                            try {
+                                String errorMsg = response.errorBody().string();
+                                errorDetails += "\nError: " + errorMsg;
+                                android.util.Log.e("AI_ERROR", errorMsg);
+                            } catch (Exception e) {
+                                errorDetails += "\nError leyendo respuesta: " + e.getMessage();
+                                android.util.Log.e("AI_ERROR", "Error parsing", e);
+                            }
+                        }
+                        Toast.makeText(getContext(), errorDetails, Toast.LENGTH_LONG).show();
+                        aiResponse = "Error al obtener recomendación de IA. Consulta a tu médico para una evaluación profesional.";
                     }
 
-                    // Combinar observaciones del usuario con respuesta de IA
+                    // Guardar con respuesta de IA
                     String finalObservations = observations;
-                    if (!aiResponse.isEmpty()) {
-                        finalObservations += "\n\n💡 IA: " + aiResponse;
+                    if (!observations.isEmpty()) {
+                        finalObservations += "\n\n";
                     }
+                    finalObservations += "💡 IA: " + aiResponse;
 
                     saveRecordToDatabase(name, age, gender, systolic, diastolic, finalObservations);
                 }
@@ -280,10 +319,49 @@ public class NewRecordFragment extends Fragment {
                 public void onFailure(Call<AIResponse> call, Throwable t) {
                     btnSaveRecord.setEnabled(true);
                     btnSaveRecord.setText(getString(R.string.save_record));
-                    // Guardar sin IA si falla
-                    saveRecordToDatabase(name, age, gender, systolic, diastolic, observations);
+
+                    // Mostrar error específico con más detalles
+                    String errorMsg = "Error de conexión: " + t.getClass().getSimpleName() + "\n" + t.getMessage();
+                    android.util.Log.e("AI_CONNECTION_ERROR", "Error completo", t);
+                    Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
+
+                    // Guardar con mensaje de error
+                    String finalObservations = observations;
+                    if (!observations.isEmpty()) {
+                        finalObservations += "\n\n";
+                    }
+                    finalObservations += "💡 IA: No se pudo conectar con el servicio de IA. Recomendación: Consulta a tu médico para una evaluación profesional de tus niveles de presión arterial.";
+
+                    saveRecordToDatabase(name, age, gender, systolic, diastolic, finalObservations);
                 }
             });
+    }
+
+    private String getPressureStatus(int systolic, int diastolic) {
+        if (systolic < 120 && diastolic < 80) {
+            return "normal";
+        } else if (systolic < 140 && diastolic < 90) {
+            return "elevated";
+        } else {
+            return "high";
+        }
+    }
+
+    private String getPressureStatusText(String status) {
+        switch (status) {
+            case "normal": return "NORMAL ✅";
+            case "elevated": return "ELEVADA ⚠️";
+            case "high": return "ALTA 🚨";
+            default: return "Desconocido";
+        }
+    }
+
+    private String getGenderText(String gender) {
+        switch (gender) {
+            case "male": return "Masculino";
+            case "female": return "Femenino";
+            default: return "Otro";
+        }
     }
 
     private void saveRecordToDatabase(String name, int age, String gender, int systolic, int diastolic, String observations) {
@@ -301,15 +379,6 @@ public class NewRecordFragment extends Fragment {
                 Toast.makeText(getContext(), getString(R.string.record_saved),
                              Toast.LENGTH_SHORT).show();
                 clearForm();
-
-                // Navegar de vuelta al dashboard
-                if (getActivity() != null) {
-                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav =
-                        getActivity().findViewById(R.id.bottom_navigation);
-                    if (bottomNav != null) {
-                        bottomNav.setSelectedItemId(R.id.nav_dashboard);
-                    }
-                }
             });
         }).start();
     }

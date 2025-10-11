@@ -68,6 +68,16 @@ public class DashboardFragment extends Fragment {
         emptyState = view.findViewById(R.id.empty_state);
         recommendationLoading = view.findViewById(R.id.recommendation_loading);
         pressureChart = view.findViewById(R.id.pressure_chart);
+
+        // Configurar el ScrollView de recomendaciones para que funcione correctamente dentro del ScrollView padre
+        android.widget.ScrollView recommendationScroll = view.findViewById(R.id.recommendation_scroll);
+        if (recommendationScroll != null) {
+            recommendationScroll.setOnTouchListener((v, event) -> {
+                // Permitir que el ScrollView interno maneje el scroll
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+        }
     }
 
     private void loadUserData() {
