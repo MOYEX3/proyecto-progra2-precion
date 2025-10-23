@@ -48,6 +48,9 @@ public class NewRecordFragment extends Fragment {
     private AppDatabase database;
     private Calendar selectedDateTime; // Esta línea estaba faltando
 
+    // API Key de OpenRouter ya está hardcodeada en ApiClient
+    private static final String MODEL_NAME = "anthropic/claude-3-opus:beta"; // Modelo de alta calidad médica
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_new_record, container, false);
@@ -63,7 +66,6 @@ public class NewRecordFragment extends Fragment {
         setupDateTimePicker();
         loadUserDefaults();
         setupSaveButton();
-        // Eliminé setupAISuggestionsButton() ya que no existe el botón
     }
 
     private void initViews(View view) {
@@ -219,7 +221,8 @@ public class NewRecordFragment extends Fragment {
             new Thread(() -> {
                 UserSettings settings = database.userSettingsDao().getUserSettings();
                 requireActivity().runOnUiThread(() -> {
-                    if (settings != null && settings.isAiEnabled() && !ApiClient.getApiKey().isEmpty()) {
+                    if (settings != null && settings.isAiEnabled()) {
+                        // Siempre usar la API key hardcodeada en ApiClient
                         processWithAI(name, age, gender, systolic, diastolic, observations);
                     } else {
                         // Guardar directamente si la IA está deshabilitada
@@ -241,6 +244,7 @@ public class NewRecordFragment extends Fragment {
 
         // Determinar el estado de la presión
         String pressureStatus = getPressureStatus(systolic, diastolic);
+        int pulse = 0; // Valor por defecto
 
         // Construir prompt detallado para análisis completo
         StringBuilder prompt = new StringBuilder();
@@ -274,14 +278,14 @@ public class NewRecordFragment extends Fragment {
         messages.add(new AIRequest.Message("user", prompt.toString()));
 
         AIRequest request = new AIRequest(
-            "meta-llama/llama-3.2-3b-instruct:free",  // Modelo gratuito más confiable
+            MODEL_NAME,  // Usar modelo de alto rendimiento para consejos médicos
             messages,
-            300, // Más tokens para respuestas completas
+            300, // Tokens suficientes para respuestas completas
             0.7  // Temperature balanceada
         );
 
-        // Llamar a la API
-        String authHeader = "Bearer " + ApiClient.getApiKey();
+        // Llamar a la API usando la API key hardcodeada en ApiClient
+        String authHeader = "Bearer " + ApiClient.getApiKey(); // La API key está hardcodeada en ApiClient
         ApiClient.getAIService().getHealthRecommendation(authHeader, request)
             .enqueue(new Callback<AIResponse>() {
                 @Override
@@ -293,6 +297,9 @@ public class NewRecordFragment extends Fragment {
                     if (response.isSuccessful() && response.body() != null &&
                         response.body().getChoices() != null && !response.body().getChoices().isEmpty()) {
                         aiResponse = response.body().getChoices().get(0).getMessage().getContent().trim();
+
+                        // Registrar respuesta exitosa para depuración
+                        android.util.Log.i("AI_SUCCESS", "Respuesta recibida: " + aiResponse.substring(0, Math.min(50, aiResponse.length())) + "...");
                     } else {
                         // Log del error para debugging con más detalles
                         String errorDetails = "Código: " + response.code();
@@ -300,13 +307,14 @@ public class NewRecordFragment extends Fragment {
                             try {
                                 String errorMsg = response.errorBody().string();
                                 errorDetails += "\nError: " + errorMsg;
-                                android.util.Log.e("AI_ERROR", errorMsg);
+                                android.util.Log.e("AI_ERROR", "Error completo de la API: " + errorMsg);
                             } catch (Exception e) {
                                 errorDetails += "\nError leyendo respuesta: " + e.getMessage();
                                 android.util.Log.e("AI_ERROR", "Error parsing", e);
                             }
                         }
-                        Toast.makeText(getContext(), errorDetails, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Error de IA: " + response.code(), Toast.LENGTH_SHORT).show();
+                        android.util.Log.e("AI_ERROR", errorDetails);
                         aiResponse = "Error al obtener recomendación de IA. Consulta a tu médico para una evaluación profesional.";
                     }
 
@@ -326,7 +334,7 @@ public class NewRecordFragment extends Fragment {
                     btnSaveRecord.setText(getString(R.string.save_record));
 
                     // Mostrar error específico con más detalles
-                    String errorMsg = "Error de conexión: " + t.getClass().getSimpleName() + "\n" + t.getMessage();
+                    String errorMsg = "Error de conexión: " + t.getMessage();
                     android.util.Log.e("AI_CONNECTION_ERROR", "Error completo", t);
                     Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
 

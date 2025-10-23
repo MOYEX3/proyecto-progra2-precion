@@ -11,17 +11,30 @@ public class UserSettings {
     private String userName;
     private int userAge;
     private String userGender;
+    // Nuevos campos para información personal
+    private String bloodType;
+    private float userWeight; // peso en kg
+    private int userHeight; // altura en cm
+    private String allergies; // alergias del usuario
+    private String medicalNotes; // comentarios adicionales médicos
+    // Campos para recordatorios
     private boolean morningReminder;
     private boolean eveningReminder;
     private String morningTime; // HH:mm format
     private String eveningTime; // HH:mm format
+    // Condiciones médicas
     private boolean hasHypertension;
     private boolean hasDiabetes;
+    // Configuración de apariencia
     private boolean isDarkModeEnabled;
+    // Preferencias de idioma
+    private String language;
+    // Datos de contacto de emergencia
     private String emergencyContactName;
     private String emergencyContactPhone;
     private String emergencyContactEmail; // Email del contacto de emergencia para envío de reportes
-    private String n8nWebhookUrl; // URL del webhook de n8n
+    // Configuración de API y servicios
+    private String n8nWebhookUrl; // URL del webhook de n8n (ahora como valor interno)
     private String aiApiKey;
     private boolean aiEnabled;
 
@@ -31,17 +44,30 @@ public class UserSettings {
         this.userName = "Usuario";
         this.userAge = 30;
         this.userGender = "other";
+        // Valores por defecto para nuevos campos
+        this.bloodType = "";
+        this.userWeight = 70.0f;
+        this.userHeight = 170;
+        this.allergies = "";
+        this.medicalNotes = "";
+        // Valores por defecto para recordatorios
         this.morningReminder = false;
         this.eveningReminder = false;
         this.morningTime = "08:00";
         this.eveningTime = "20:00";
+        // Valores por defecto para condiciones médicas
         this.hasHypertension = false;
         this.hasDiabetes = false;
+        // Valores por defecto para configuración de apariencia
         this.isDarkModeEnabled = false;
+        // Valores por defecto para idioma
+        this.language = "es"; // Español por defecto
+        // Valores por defecto para contacto de emergencia
         this.emergencyContactName = "";
         this.emergencyContactPhone = "";
         this.emergencyContactEmail = "";
-        this.n8nWebhookUrl = "https://primary-production-38135.up.railway.app/webhook-test/precion-arterial";
+        // Valores por defecto para configuración de API
+        this.n8nWebhookUrl = "https://primary-production-38135.up.railway.app/webhook/precion-arterial";
         this.aiApiKey = "";
         this.aiEnabled = true;
     }
@@ -58,6 +84,25 @@ public class UserSettings {
 
     public String getUserGender() { return userGender; }
     public void setUserGender(String userGender) { this.userGender = userGender; }
+
+    // Getters and Setters para nuevos campos
+    public String getBloodType() { return bloodType; }
+    public void setBloodType(String bloodType) { this.bloodType = bloodType; }
+
+    public float getUserWeight() { return userWeight; }
+    public void setUserWeight(float userWeight) { this.userWeight = userWeight; }
+
+    public int getUserHeight() { return userHeight; }
+    public void setUserHeight(int userHeight) { this.userHeight = userHeight; }
+
+    public String getAllergies() { return allergies; }
+    public void setAllergies(String allergies) { this.allergies = allergies; }
+
+    public String getMedicalNotes() { return medicalNotes; }
+    public void setMedicalNotes(String medicalNotes) { this.medicalNotes = medicalNotes; }
+
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
 
     public boolean isMorningReminder() { return morningReminder; }
     public void setMorningReminder(boolean morningReminder) { this.morningReminder = morningReminder; }

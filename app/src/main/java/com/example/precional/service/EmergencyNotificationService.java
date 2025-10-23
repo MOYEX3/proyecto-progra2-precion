@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 public class EmergencyNotificationService {
     private static final String TAG = "EmergencyNotification";
+    private static final String N8N_WEBHOOK_URL = "https://primary-production-38135.up.railway.app/webhook/precion-arterial";
+
     private final Context context;
     private final N8nApiService n8nService;
 
@@ -58,11 +60,6 @@ public class EmergencyNotificationService {
             return;
         }
 
-        if (settings.getN8nWebhookUrl() == null || settings.getN8nWebhookUrl().trim().isEmpty()) {
-            callback.onError("Debe configurar la URL del webhook de n8n en ajustes");
-            return;
-        }
-
         // Generar diagnóstico
         String diagnostico = getDiagnostico(systolic, diastolic);
 
@@ -78,10 +75,10 @@ public class EmergencyNotificationService {
         );
 
         // Enviar petición
-        Log.d(TAG, "Enviando alerta de emergencia a: " + settings.getN8nWebhookUrl());
+        Log.d(TAG, "Enviando alerta de emergencia a: " + N8N_WEBHOOK_URL);
         Log.d(TAG, "Diagnóstico: " + diagnostico + " (" + systolic + "/" + diastolic + ")");
 
-        n8nService.sendEmergencyAlert(settings.getN8nWebhookUrl(), request)
+        n8nService.sendEmergencyAlert(N8N_WEBHOOK_URL, request)
                 .enqueue(new Callback<ResponseBody>() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -105,30 +102,27 @@ public class EmergencyNotificationService {
     }
 
     /**
-     * Genera el diagnóstico basado en los valores de presión arterial
+     * Determina el diagnóstico basado en los valores de presión
      */
     private String getDiagnostico(int systolic, int diastolic) {
-        if (systolic < 90 || diastolic < 60) {
-            return "Presión baja";
-        } else if (systolic < 120 && diastolic < 80) {
-            return "Presión normal";
-        } else if (systolic < 130 && diastolic < 80) {
-            return "Presión elevada";
-        } else if (systolic < 140 || diastolic < 90) {
-            return "Hipertensión nivel 1";
-        } else if (systolic < 180 || diastolic < 120) {
-            return "Hipertensión nivel 2";
-        } else {
+        if (systolic >= 180 || diastolic >= 110) {
             return "Crisis hipertensiva";
+        } else if (systolic >= 140 || diastolic >= 90) {
+            return "Presión alta";
+        } else if (systolic >= 130 || diastolic >= 80) {
+            return "Presión elevada";
+        } else if (systolic >= 90 && diastolic >= 60) {
+            return "Presión normal";
+        } else {
+            return "Presión baja";
         }
     }
 
     /**
-     * Callback para recibir el resultado del envío
+     * Callback para notificaciones de emergencia
      */
     public interface EmergencyNotificationCallback {
         void onSuccess();
-        void onError(String message);
+        void onError(String error);
     }
 }
-

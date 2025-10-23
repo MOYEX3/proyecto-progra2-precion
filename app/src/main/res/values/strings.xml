@@ -5,6 +5,7 @@
     <string name="nav_dashboard">Inicio</string>
     <string name="nav_new_record">Nuevo Registro</string>
     <string name="nav_history">Historial</string>
+    <string name="nav_information">Información</string>
     <string name="nav_settings">Configuración</string>
 
     <!-- Dashboard -->
@@ -20,7 +21,9 @@
     <string name="new_record_title">Nuevo Registro</string>
     <string name="name_field">Nombre</string>
     <string name="age_field">Edad</string>
+    <string name="age">Edad</string>
     <string name="gender_field">Sexo</string>
+    <string name="gender">Género</string>
     <string name="male">Masculino</string>
     <string name="female">Femenino</string>
     <string name="other">Otro</string>
@@ -48,6 +51,34 @@
     <string name="normal_status">Normal</string>
     <string name="elevated_status">Elevada</string>
     <string name="high_status">Alta</string>
+
+    <!-- Login y Registro -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="username">Nombre de usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="login_button">Ingresar</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+
+    <string name="register_title">Bienvenido a Precional</string>
+    <string name="register_subtitle">Por favor, complete su información</string>
+    <string name="register_access_section">Datos de acceso</string>
+    <string name="full_name">Nombre completo</string>
+    <string name="personal_data_section">Datos personales</string>
+    <string name="weight_field">Peso (kg)</string>
+    <string name="height_field">Altura (cm)</string>
+    <string name="medical_info_section">Información médica</string>
+    <string name="blood_type">Tipo de sangre</string>
+    <string name="allergies">Alergias</string>
+    <string name="chronic_diseases">Enfermedades crónicas</string>
+    <string name="additional_comments">Comentarios adicionales</string>
+    <string name="save_info">Guardar información</string>
+
+
+    <!-- Mensajes -->
+    <string name="required_fields">Por favor, completa los campos obligatorios</string>
+    <string name="invalid_numeric_values">Por favor, introduce valores numéricos válidos</string>
+    <string name="registration_successful">Registro exitoso</string>
+    <string name="login_error">Usuario o contraseña incorrectos</string>
 
     <!-- Configuración -->
     <string name="settings_title">Configuración</string>
@@ -84,4 +115,26 @@
     <!-- Recomendaciones por defecto -->
     <string name="default_recommendation">Mantén un estilo de vida saludable</string>
     <string name="high_pressure_warning">Tu presión está elevada. Considera consultar a tu médico.</string>
+
+    <!-- Información Personal -->
+    <string name="personal_information">Información Personal</string>
+    <string name="name">Nombre completo</string>
+    <string name="weight_kg">Peso (kg)</string>
+    <string name="height_cm">Altura (cm)</string>
+    <string name="medical_notes">Notas médicas</string>
+    <string name="save_information">Guardar Información</string>
+
+    <!-- Contacto de emergencia -->
+    <string name="contact_name">Nombre del contacto</string>
+    <string name="contact_phone">Teléfono</string>
+    <string name="contact_email">Correo electrónico</string>
+    <string name="call">Llamar</string>
+    <string name="email">Email</string>
+
+    <!-- Configuración adicional -->
+    <string name="appearance_settings">Apariencia</string>
+    <string name="ai_recommendations">Recomendaciones IA</string>
+    <string name="ai_api_key">API Key de IA</string>
+    <string name="save_settings">Guardar Configuración</string>
+    <string name="language">Idioma</string>
 </resources>

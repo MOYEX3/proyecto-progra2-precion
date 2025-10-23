@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 public class ApiClient {
     private static Retrofit retrofit = null;
     private static String BASE_URL = "https://openrouter.ai/api/v1/"; // URL para OpenRouter/Grok
-    private static String API_KEY = "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"; // Tu API key
+    private static String API_KEY = "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"; // Nueva API key
 
     public static void setBaseUrl(String baseUrl) {
         BASE_URL = baseUrl;
@@ -35,6 +35,7 @@ public class ApiClient {
             okhttp3.Interceptor headerInterceptor = chain -> {
                 okhttp3.Request original = chain.request();
                 okhttp3.Request.Builder requestBuilder = original.newBuilder()
+                    .header("Authorization", "Bearer " + API_KEY)
                     .header("HTTP-Referer", "https://github.com/Precional")
                     .header("X-Title", "Presion-Control-App")
                     .method(original.method(), original.body());

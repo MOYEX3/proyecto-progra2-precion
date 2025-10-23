@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -23,6 +23,7 @@ import com.example.precional.data.database.AppDatabase;
 import com.example.precional.data.entity.UserSettings;
 import com.example.precional.ui.DashboardFragment;
 import com.example.precional.ui.HistoryFragment;
+import com.example.precional.ui.InformationFragment;
 import com.example.precional.ui.NewRecordFragment;
 import com.example.precional.ui.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -83,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_history) {
                 selectedFragment = new HistoryFragment();
                 showAddButton(true);
+            } else if (itemId == R.id.nav_information) {
+                selectedFragment = new InformationFragment();
+                showAddButton(false);
             } else if (itemId == R.id.nav_settings) {
                 selectedFragment = new SettingsFragment();
                 showAddButton(false);
@@ -96,14 +100,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupFloatingButtons() {
-        addRecordButton.setOnClickListener(v -> {
-            bottomNavigation.setSelectedItemId(R.id.nav_new_record);
-        });
+        addRecordButton.setOnClickListener(v -> bottomNavigation.setSelectedItemId(R.id.nav_new_record));
 
-        emergencyButton.setOnClickListener(v -> {
-            // TODO: Implementar diálogo de emergencia
-            showEmergencyDialog();
-        });
+        emergencyButton.setOnClickListener(v -> showEmergencyDialog());
     }
 
     private void loadFragment(Fragment fragment) {
@@ -121,13 +120,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeUserSettings() {
-        // Crear configuración por defecto si no existe
-        new Thread(() -> {
-            if (database.userSettingsDao().hasSettings() == 0) {
-                UserSettings defaultSettings = new UserSettings();
-                database.userSettingsDao().insertOrUpdate(defaultSettings);
-            }
-        }).start();
+        // No es necesario inicializar los ajustes de usuario aquí
+        // ya que ahora se configuran durante el registro
     }
 
     private void showEmergencyDialog() {
@@ -139,19 +133,16 @@ public class MainActivity extends AppCompatActivity {
                 builder.setMessage(getString(R.string.emergency_title));
 
                 // Opción 1: Me siento bien
-                builder.setNeutralButton(getString(R.string.feeling_okay), (dialog, which) -> {
-                    dialog.dismiss();
-                });
+                builder.setNeutralButton(getString(R.string.feeling_okay),
+                    (dialog, which) -> dialog.dismiss());
 
                 // Opción 2: Me siento más o menos mal - pregunta si quiere llamar
-                builder.setNegativeButton(getString(R.string.feeling_unwell), (dialog, which) -> {
-                    showCallConfirmationDialog(settings);
-                });
+                builder.setNegativeButton(getString(R.string.feeling_unwell),
+                    (dialog, which) -> showCallConfirmationDialog(settings));
 
                 // Opción 3: Me siento muy mal - llama directamente
-                builder.setPositiveButton(getString(R.string.feeling_very_bad), (dialog, which) -> {
-                    makeEmergencyCall(settings, true);
-                });
+                builder.setPositiveButton(getString(R.string.feeling_very_bad),
+                    (dialog, which) -> makeEmergencyCall(settings, true));
 
                 builder.setCancelable(false);
                 AlertDialog dialog = builder.create();
@@ -177,13 +168,9 @@ public class MainActivity extends AppCompatActivity {
         builder.setMessage("¿Deseas llamar a " + settings.getEmergencyContactName() +
                           "?\nTeléfono: " + settings.getEmergencyContactPhone());
 
-        builder.setPositiveButton("Llamar", (dialog, which) -> {
-            makeEmergencyCall(settings, false);
-        });
+        builder.setPositiveButton("Llamar", (dialog, which) -> makeEmergencyCall(settings, false));
 
-        builder.setNegativeButton("Cancelar", (dialog, which) -> {
-            dialog.dismiss();
-        });
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -237,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == CALL_PERMISSION_REQUEST_CODE) {

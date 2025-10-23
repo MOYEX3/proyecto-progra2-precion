@@ -1,8 +1,16 @@
 package com.example.precional.service;
 
+import android.content.Context;
+
+import com.example.precional.api.ApiClient;
+import com.example.precional.data.database.AppDatabase;
 import com.example.precional.data.entity.BloodPressureRecord;
+import com.example.precional.data.entity.UserSettings;
+import com.example.precional.service.ai.OpenRouterService;
 
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AIRecommendationService {
 
@@ -38,7 +46,52 @@ public class AIRecommendationService {
         "😌 Bienestar: 5 minutos de respiración profunda reducen el estrés diario."
     };
 
-    public static String getRecommendation(BloodPressureRecord record) {
+    // Método para obtener recomendación (ahora con soporte para AI real)
+    public static void getRecommendation(Context context, BloodPressureRecord record, String observations,
+                                        RecommendationCallback callback) {
+        // Verificar si la IA está habilitada en las configuraciones
+        AppDatabase db = AppDatabase.getDatabase(context);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(() -> {
+            UserSettings settings = db.userSettingsDao().getUserSettings();
+
+            // Variable para la recomendación final
+            String recommendation;
+
+            // Verificar si la IA está habilitada
+            if (settings != null && settings.isAiEnabled()) {
+                try {
+                    // Usar la API key hardcodeada desde ApiClient
+                    OpenRouterService aiService = new OpenRouterService(ApiClient.getApiKey());
+
+                    String userName = settings.getUserName();
+                    String userSex = settings.getUserGender();
+                    Integer userAge = settings.getUserAge();
+
+                    // Obtener recomendación de la IA
+                    recommendation = aiService.getRecommendation(record, observations, userName, userSex, userAge);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // En caso de error, usar el sistema de respuestas predefinidas
+                    recommendation = getLocalRecommendation(record);
+                }
+            } else {
+                // Si la IA está desactivada, usar el sistema de respuestas predefinidas
+                recommendation = getLocalRecommendation(record);
+            }
+
+            // Devolver la recomendación en el hilo principal
+            String finalRecommendation = recommendation;
+            android.os.Handler mainHandler = new android.os.Handler(context.getMainLooper());
+            mainHandler.post(() -> callback.onRecommendationReceived(finalRecommendation));
+        });
+
+        executor.shutdown();
+    }
+
+    // Método para obtener recomendación local (sin IA)
+    private static String getLocalRecommendation(BloodPressureRecord record) {
         if (record == null) {
             return getDashboardTip();
         }
@@ -97,5 +150,10 @@ public class AIRecommendationService {
             default:
                 return "Mantén un estilo de vida saludable para controlar tu presión arterial.";
         }
+    }
+
+    // Interfaz para manejar las respuestas asíncronas de la IA
+    public interface RecommendationCallback {
+        void onRecommendationReceived(String recommendation);
     }
 }
