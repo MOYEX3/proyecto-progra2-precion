@@ -21,7 +21,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class SettingsFragment extends Fragment {
 
-    private TextInputEditText etUserName, etUserAge, etEmergencyName, etEmergencyPhone;
+    private TextInputEditText etUserName, etUserAge, etEmergencyName, etEmergencyPhone, etEmergencyEmail, etN8nWebhookUrl;
     private AutoCompleteTextView spinnerUserGender;
     private Switch switchMorningReminder, switchEveningReminder, switchHypertension,
                    switchDiabetes, switchDarkMode, switchAiEnabled;
@@ -49,6 +49,8 @@ public class SettingsFragment extends Fragment {
         etUserAge = view.findViewById(R.id.et_user_age);
         etEmergencyName = view.findViewById(R.id.et_emergency_name);
         etEmergencyPhone = view.findViewById(R.id.et_emergency_phone);
+        etEmergencyEmail = view.findViewById(R.id.et_emergency_email);
+        etN8nWebhookUrl = view.findViewById(R.id.et_n8n_webhook_url);
         spinnerUserGender = view.findViewById(R.id.spinner_user_gender);
         switchMorningReminder = view.findViewById(R.id.switch_morning_reminder);
         switchEveningReminder = view.findViewById(R.id.switch_evening_reminder);
@@ -73,6 +75,21 @@ public class SettingsFragment extends Fragment {
         );
 
         spinnerUserGender.setAdapter(adapter);
+
+        // Configurar para que funcione como un spinner
+        spinnerUserGender.setInputType(0);
+        spinnerUserGender.setKeyListener(null);
+
+        // Mostrar dropdown al hacer clic
+        spinnerUserGender.setOnClickListener(v -> spinnerUserGender.showDropDown());
+
+        // Manejar selección
+        spinnerUserGender.setOnItemClickListener((parent, view, position, id) -> {
+            spinnerUserGender.setText(genderOptions[position], false);
+        });
+
+        // Establecer valor por defecto
+        spinnerUserGender.setText(getString(R.string.other), false);
     }
 
     private void loadCurrentSettings() {
@@ -85,6 +102,8 @@ public class SettingsFragment extends Fragment {
                     etUserAge.setText(String.valueOf(settings.getUserAge()));
                     etEmergencyName.setText(settings.getEmergencyContactName());
                     etEmergencyPhone.setText(settings.getEmergencyContactPhone());
+                    etEmergencyEmail.setText(settings.getEmergencyContactEmail());
+                    etN8nWebhookUrl.setText(settings.getN8nWebhookUrl());
 
                     // Configurar género
                     String gender = settings.getUserGender();
@@ -121,6 +140,8 @@ public class SettingsFragment extends Fragment {
         String ageStr = etUserAge.getText().toString().trim();
         String emergencyName = etEmergencyName.getText().toString().trim();
         String emergencyPhone = etEmergencyPhone.getText().toString().trim();
+        String emergencyEmail = etEmergencyEmail.getText().toString().trim();
+        String n8nWebhookUrl = etN8nWebhookUrl.getText().toString().trim();
         String genderText = spinnerUserGender.getText().toString().trim();
 
         if (name.isEmpty() || ageStr.isEmpty()) {
@@ -145,6 +166,8 @@ public class SettingsFragment extends Fragment {
                 settings.setUserGender(gender);
                 settings.setEmergencyContactName(emergencyName);
                 settings.setEmergencyContactPhone(emergencyPhone);
+                settings.setEmergencyContactEmail(emergencyEmail);
+                settings.setN8nWebhookUrl(n8nWebhookUrl);
                 settings.setMorningReminder(switchMorningReminder.isChecked());
                 settings.setEveningReminder(switchEveningReminder.isChecked());
                 settings.setHasHypertension(switchHypertension.isChecked());
@@ -154,10 +177,10 @@ public class SettingsFragment extends Fragment {
 
                 database.userSettingsDao().insertOrUpdate(settings);
 
-                requireActivity().runOnUiThread(() -> {
+                requireActivity().runOnUiThread(() ->
                     Toast.makeText(getContext(), "Configuración guardada exitosamente",
-                                 Toast.LENGTH_SHORT).show();
-                });
+                                 Toast.LENGTH_SHORT).show()
+                );
             }).start();
 
         } catch (NumberFormatException e) {

@@ -23,6 +23,7 @@ import com.example.precional.api.ApiClient;
 import com.example.precional.data.database.AppDatabase;
 import com.example.precional.data.entity.BloodPressureRecord;
 import com.example.precional.data.entity.UserSettings;
+import com.example.precional.service.EmergencyNotificationService;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -214,14 +215,18 @@ public class NewRecordFragment extends Fragment {
             // Convertir género a formato interno
             String gender = convertGenderToInternal(genderText);
 
-            // SIEMPRE procesar con IA si está habilitada
-            UserSettings settings = database.userSettingsDao().getUserSettings();
-            if (settings != null && settings.isAiEnabled() && !ApiClient.getApiKey().isEmpty()) {
-                processWithAI(name, age, gender, systolic, diastolic, observations);
-            } else {
-                // Guardar directamente si la IA está deshabilitada
-                saveRecordToDatabase(name, age, gender, systolic, diastolic, observations);
-            }
+            // SIEMPRE procesar con IA si está habilitada (verificar en hilo secundario)
+            new Thread(() -> {
+                UserSettings settings = database.userSettingsDao().getUserSettings();
+                requireActivity().runOnUiThread(() -> {
+                    if (settings != null && settings.isAiEnabled() && !ApiClient.getApiKey().isEmpty()) {
+                        processWithAI(name, age, gender, systolic, diastolic, observations);
+                    } else {
+                        // Guardar directamente si la IA está deshabilitada
+                        saveRecordToDatabase(name, age, gender, systolic, diastolic, observations);
+                    }
+                });
+            }).start();
 
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), "Por favor ingresa valores numéricos válidos",
@@ -375,12 +380,52 @@ public class NewRecordFragment extends Fragment {
         new Thread(() -> {
             database.bloodPressureDao().insert(record);
 
+            // Obtener configuración para envío de emergencia
+            UserSettings settings = database.userSettingsDao().getUserSettings();
+
             requireActivity().runOnUiThread(() -> {
                 Toast.makeText(getContext(), getString(R.string.record_saved),
                              Toast.LENGTH_SHORT).show();
+
+                // Enviar notificación de emergencia SIEMPRE
+                if (settings != null) {
+                    sendEmergencyNotification(settings, systolic, diastolic);
+                }
+
                 clearForm();
             });
         }).start();
+    }
+
+    /**
+     * Envía notificación de emergencia al contacto configurado
+     */
+    private void sendEmergencyNotification(UserSettings settings, int systolic, int diastolic) {
+        EmergencyNotificationService service = new EmergencyNotificationService(requireContext());
+
+        service.sendEmergencyAlert(settings, systolic, diastolic,
+            new EmergencyNotificationService.EmergencyNotificationCallback() {
+                @Override
+                public void onSuccess() {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(),
+                            "✅ Mensaje de emergencia enviado correctamente",
+                            Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        // Solo mostrar error si es relevante (no si no está configurado)
+                        if (!message.contains("Debe registrar") && !message.contains("Debe configurar")) {
+                            Toast.makeText(getContext(),
+                                "⚠️ No se pudo enviar alerta: " + message,
+                                Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+            });
     }
 
     private void clearForm() {

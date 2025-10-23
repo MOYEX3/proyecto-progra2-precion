@@ -12,7 +12,7 @@ import com.example.precional.data.entity.UserSettings;
 
 @Database(
     entities = {BloodPressureRecord.class, UserSettings.class},
-    version = 1,
+    version = 5,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -28,7 +28,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             AppDatabase.class, "blood_pressure_database")
-                            .allowMainThreadQueries() // Para simplicidad, en producción usar AsyncTask o Executors
+                            .fallbackToDestructiveMigration() // Recrear la BD si hay cambios de esquema
                             .build();
                 }
             }

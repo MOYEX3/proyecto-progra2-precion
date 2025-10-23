@@ -64,18 +64,4 @@ public class BloodPressureRecord {
             return "high";
         }
     }
-
-    public int getPressureStatusColor() {
-        String status = getPressureStatus();
-        switch (status) {
-            case "normal":
-                return android.R.color.holo_green_light;
-            case "elevated":
-                return android.R.color.holo_orange_light;
-            case "high":
-                return android.R.color.holo_red_light;
-            default:
-                return android.R.color.darker_gray;
-        }
-    }
 }

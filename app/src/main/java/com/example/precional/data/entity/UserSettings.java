@@ -20,6 +20,8 @@ public class UserSettings {
     private boolean isDarkModeEnabled;
     private String emergencyContactName;
     private String emergencyContactPhone;
+    private String emergencyContactEmail; // Email del contacto de emergencia para envío de reportes
+    private String n8nWebhookUrl; // URL del webhook de n8n
     private String aiApiKey;
     private boolean aiEnabled;
 
@@ -38,6 +40,8 @@ public class UserSettings {
         this.isDarkModeEnabled = false;
         this.emergencyContactName = "";
         this.emergencyContactPhone = "";
+        this.emergencyContactEmail = "";
+        this.n8nWebhookUrl = "https://primary-production-38135.up.railway.app/webhook-test/precion-arterial";
         this.aiApiKey = "";
         this.aiEnabled = true;
     }
@@ -81,6 +85,12 @@ public class UserSettings {
 
     public String getEmergencyContactPhone() { return emergencyContactPhone; }
     public void setEmergencyContactPhone(String emergencyContactPhone) { this.emergencyContactPhone = emergencyContactPhone; }
+
+    public String getEmergencyContactEmail() { return emergencyContactEmail; }
+    public void setEmergencyContactEmail(String emergencyContactEmail) { this.emergencyContactEmail = emergencyContactEmail; }
+
+    public String getN8nWebhookUrl() { return n8nWebhookUrl; }
+    public void setN8nWebhookUrl(String n8nWebhookUrl) { this.n8nWebhookUrl = n8nWebhookUrl; }
 
     public String getAiApiKey() { return aiApiKey; }
     public void setAiApiKey(String aiApiKey) { this.aiApiKey = aiApiKey; }
