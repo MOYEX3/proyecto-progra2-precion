@@ -1,0 +1,167 @@
+{
+  "name": "mensaje-emergencia",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "precion-arterial",
+        "options": {
+          "responseData": "JSON"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "57be8af4-e8bd-42a5-b67b-203b4b33e9f4",
+      "name": "Webhook",
+      "webhookId": "c59dc01b-a0c2-4918-95f5-e5d6094b8a3e"
+    },
+    {
+      "parameters": {
+        "from": "=+14155238886",
+        "to": "={{ $json.body.numero_contacto_emergencia }}",
+        "toWhatsapp": true,
+        "message": "=🚨 Alerta de presión arterial 🚨 el usuario: {{ $json.body.nombre_usuario }} tiene {{ $json.body.diagnostico }} ya que en distolica tenemos :{{ $json.body.presion_diastolica }} y en sistolica: {{ $json.body.presion_sistolica }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -112
+      ],
+      "id": "aafa8bb5-b1dd-44c7-a3a9-55858bdabc0c",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "eGz2RRZEAbgjfyea",
+          "name": "Twilio account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un asistente médico virtual especializado en control de presión arterial.\n\nRecibirás los siguientes datos en formato JSON:\n\n{\n\"nombre_usuario\": \"{{ $json.body.nombre_usuario }}\",\n\"diagnostico\": \"\"{{ $json.body.diagnostico }}\"\",\n\"nombre_contacto_emergencia\": \"{{ $json.body.nombre_contacto_emergencia }}\",\n\"presion_sistolica\": {{ $json.body.presion_sistolica }}\n\"presion_diastolica\": {{ $json.body.presion_diastolica }}\n}\n\nTu tarea es:\n\nGenerar un mensaje claro, breve y empático dirigido al contacto de emergencia, informando sobre el registro de presión arterial del usuario.\n\nMenciona explícitamente los valores de la presión sistólica y diastólica.\n\nExplica brevemente si los valores son elevados, bajos o normales, según el diagnóstico.\n\nIncluye una recomendación general (por ejemplo, “se recomienda monitorear y consultar al médico si se mantiene elevada”).\n\nNo incluyas el correo electrónico ni información técnica adicional.\n\nDevuelve la respuesta únicamente en este formato JSON:\n\n{\n\"mensaje\": \"Aquí el texto del mensaje generado\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "500d9040-d2eb-4154-8653-27463afb62f8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "18d2ce3c-d6f6-49f9-9b45-face5bd1276e",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "jBITl6I5VtGwOSH2",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"to\"{{ $('Webhook').item.json.body.email_contacto_emergencia }}: ,\n  \"subject\": \"Resultado del registro de presión arterial\",\n  \"body\": {{ $json.output }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        -256
+      ],
+      "id": "ec7a9069-5df0-4379-9212-6b4deb6b2e45",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email_contacto_emergencia }}",
+        "subject": "DIAGNOSTICO",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "071e3b4e-faf4-4423-822f-1299a9d43e92",
+      "name": "Send a message",
+      "webhookId": "c9b11959-4e20-4cbb-892e-aaf229e9ce29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "nqfpvMxHyp8dVm7H",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "74597c6a-d9af-46df-a2da-dd625fc97742",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7fe8855d18e0c89cc363f740c43929ecaccea15f8641ca6ed9dd3942ce2f06e8"
+  },
+  "id": "WlcafOb0ih33Wk2u",
+  "tags": []
+}
